@@ -1,0 +1,22 @@
+{
+  "name": "agile-weekend",
+  "type": "module",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro check && astro build",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "@astrojs/check": "latest",
+    "@astrojs/react": "latest",
+    "astro": "latest",
+    "html-to-image": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "smol-toml": "latest",
+    "typescript": "latest"
+  },
+  "devDependencies": {}
+}
