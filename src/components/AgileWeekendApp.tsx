@@ -8,7 +8,8 @@ const LEGACY_STORAGE_KEY = "agile-weekend-project";
 const WELCOME_SEEN_KEY = "agile-weekend-welcome-seen";
 const CTA = "Make your own at blairhudson.com/agile-weekend";
 const REPORT_WIDTH = 1080;
-const LOGO_SRC = `${import.meta.env.BASE_URL}logo.png`;
+const BASE_PATH = import.meta.env.BASE_URL.endsWith("/") ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
+const LOGO_SRC = `${BASE_PATH}logo.png`;
 const confettiColors = ["#007acc", "#4ec9b0", "#ffcb45", "#ff6b8f", "#ffffff"];
 
 const statuses = ["todo", "doing", "done", "blocked"] as const;
