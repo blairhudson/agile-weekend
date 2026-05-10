@@ -5,6 +5,7 @@ import { parse as parseToml, stringify as stringifyToml } from "smol-toml";
 
 const STORAGE_KEY = "agile-weekend-state";
 const LEGACY_STORAGE_KEY = "agile-weekend-project";
+const WELCOME_SEEN_KEY = "agile-weekend-welcome-seen";
 const CTA = "Make your own at blairhudson.com/agile-weekend";
 const REPORT_WIDTH = 1080;
 const LOGO_SRC = `${import.meta.env.BASE_URL}logo.png`;
@@ -12,6 +13,23 @@ const confettiColors = ["#007acc", "#4ec9b0", "#ffcb45", "#ff6b8f", "#ffffff"];
 
 const statuses = ["todo", "doing", "done", "blocked"] as const;
 const themes = ["linearDark", "mondayPop", "editorial", "neonSprint"] as const;
+const welcomeSlides = [
+  {
+    eyebrow: "01",
+    title: "Pick your weekend",
+    body: "Choose the weekend you are trying to protect from becoming \u201cI opened 47 tabs and learned nothing\u201d.",
+  },
+  {
+    eyebrow: "02",
+    title: "Add tiny tasks",
+    body: "Write what you worked on, add a status, drop one useful link. That is enough ceremony. Standups remain illegal.",
+  },
+  {
+    eyebrow: "03",
+    title: "Export the receipts",
+    body: "Turn your chaos into a polished recap so LinkedIn thinks you had a strategy all along.",
+  },
+];
 
 type Status = (typeof statuses)[number];
 type ThemeId = (typeof themes)[number];
@@ -320,6 +338,7 @@ export default function AgileWeekendApp() {
   const [exporting, setExporting] = useState(false);
   const [lastSavedAt, setLastSavedAt] = useState<number | null>(null);
   const [now, setNow] = useState(Date.now());
+  const [showWelcome, setShowWelcome] = useState(false);
   const [previewScale, setPreviewScale] = useState(0.38);
   const [previewWidth, setPreviewWidth] = useState(48);
   const [reportHeight, setReportHeight] = useState(900);
@@ -348,6 +367,7 @@ export default function AgileWeekendApp() {
         setMessage("Saved browser data was invalid. Loaded sample project.");
       }
     }
+    setShowWelcome(window.localStorage.getItem(WELCOME_SEEN_KEY) !== "true");
     setLoaded(true);
   }, []);
 
@@ -535,6 +555,11 @@ export default function AgileWeekendApp() {
     document.addEventListener("pointerup", stopResize, { once: true });
   }
 
+  function closeWelcome() {
+    window.localStorage.setItem(WELCOME_SEEN_KEY, "true");
+    setShowWelcome(false);
+  }
+
   return (
     <main className="app-shell">
       <AppHeader
@@ -555,6 +580,8 @@ export default function AgileWeekendApp() {
           <button type="button" aria-label="Dismiss notification" onClick={() => setMessage("")}>×</button>
         </div>
       )}
+
+      {showWelcome && <WelcomeModal onClose={closeWelcome} />}
 
       <div className="app-grid" style={{ "--preview-width": `${previewWidth}vw` } as CSSProperties}>
         <EditorPanel
@@ -602,6 +629,69 @@ export default function AgileWeekendApp() {
         <span>{formatLastSaved(lastSavedAt, now)}</span>
       </footer>
     </main>
+  );
+}
+
+function WelcomeModal({ onClose }: { onClose: () => void }) {
+  const [slideIndex, setSlideIndex] = useState(0);
+  const slide = welcomeSlides[slideIndex];
+  const isFirst = slideIndex === 0;
+  const isLast = slideIndex === welcomeSlides.length - 1;
+
+  useEffect(() => {
+    function closeOnEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") onClose();
+    }
+
+    document.addEventListener("keydown", closeOnEscape);
+    return () => document.removeEventListener("keydown", closeOnEscape);
+  }, [onClose]);
+
+  return (
+    <div className="welcome-overlay" role="presentation">
+      <section className="welcome-modal" role="dialog" aria-modal="true" aria-labelledby="welcome-title">
+        <div className="welcome-copy">
+          <button type="button" className="welcome-close" aria-label="Close welcome" onClick={onClose}>×</button>
+          <div className="welcome-kicker">
+            <span>Welcome to</span>
+            <span className="welcome-logo-mark"><img src={LOGO_SRC} alt="Agile Weekend" /></span>
+          </div>
+          <h2 id="welcome-title">Your weekend is precious.</h2>
+          <p className="welcome-subtitle">Jira is not invited.</p>
+        </div>
+
+        <article className="welcome-slide">
+          <span>{slide.eyebrow}</span>
+          <h3>{slide.title}</h3>
+          <p>{slide.body}</p>
+        </article>
+
+        <div className="welcome-dots" aria-label="Welcome steps">
+          {welcomeSlides.map((item, index) => (
+            <button
+              key={item.eyebrow}
+              type="button"
+              className={index === slideIndex ? "is-active" : ""}
+              aria-label={`Show step ${index + 1}`}
+              aria-current={index === slideIndex ? "step" : undefined}
+              onClick={() => setSlideIndex(index)}
+            />
+          ))}
+        </div>
+
+        <footer className="welcome-actions">
+          <button type="button" className="welcome-skip" onClick={onClose}>skip the onboarding ritual</button>
+          <div>
+            <button type="button" onClick={() => setSlideIndex((index) => Math.max(0, index - 1))} disabled={isFirst}>Back</button>
+            {isLast ? (
+              <button type="button" className="primary" onClick={onClose}>Start my weekend</button>
+            ) : (
+              <button type="button" className="primary" onClick={() => setSlideIndex((index) => Math.min(welcomeSlides.length - 1, index + 1))}>Next</button>
+            )}
+          </div>
+        </footer>
+      </section>
+    </div>
   );
 }
 
@@ -1073,7 +1163,7 @@ const ReportPreview = forwardRef<HTMLDivElement, ReportPreviewProps>(function Re
         <div className="report-background" />
         <header className="report-header">
           <div className="report-topline">
-            <img className="report-logo" src={LOGO_SRC} alt="Agile Weekend" />
+            <span className="report-logo-mark"><img className="report-logo" src={LOGO_SRC} alt="Agile Weekend" /></span>
             <div className="report-weekend">{formatWeekend(project.weekendStart)}</div>
           </div>
           <h2>{project.goal || "Set a weekend goal, track progress, share what you learned."}</h2>
