@@ -7,6 +7,8 @@ const STORAGE_KEY = "agile-weekend-state";
 const LEGACY_STORAGE_KEY = "agile-weekend-project";
 const CTA = "Make your own at blairhudson.com/agile-weekend";
 const REPORT_WIDTH = 1080;
+const LOGO_SRC = `${import.meta.env.BASE_URL}logo.png`;
+const confettiColors = ["#007acc", "#4ec9b0", "#ffcb45", "#ff6b8f", "#ffffff"];
 
 const statuses = ["todo", "doing", "done", "blocked"] as const;
 const themes = ["linearDark", "mondayPop", "editorial", "neonSprint"] as const;
@@ -32,6 +34,16 @@ type Project = {
 type StoredState = {
   currentWeekend: string;
   projects: Record<string, Project>;
+};
+
+type ConfettiPiece = {
+  id: string;
+  x: number;
+  peakX: number;
+  peakY: number;
+  spin: number;
+  delay: number;
+  color: string;
 };
 
 const statusLabels: Record<Status, string> = {
@@ -607,6 +619,7 @@ type AppHeaderProps = {
 
 function AppHeader({ project, exporting, onShiftWeekend, onThemeChange, onSave, onLoad, onExport, onReset, onAddTask }: AppHeaderProps) {
   const [openMenu, setOpenMenu] = useState<"file" | "edit" | "view" | null>(null);
+  const [confetti, setConfetti] = useState<ConfettiPiece[]>([]);
   const menuBarRef = useRef<HTMLElement>(null);
   const loadInputRef = useRef<HTMLInputElement>(null);
 
@@ -734,11 +747,49 @@ function AppHeader({ project, exporting, onShiftWeekend, onThemeChange, onSave, 
     setOpenMenu(null);
   }
 
+  function celebrateLogo() {
+    const pieces = Array.from({ length: 84 }, (_, index) => {
+      const fromLeft = index % 2 === 0;
+      const spread = 18 + Math.random() * 34;
+      const direction = fromLeft ? 1 : -1;
+      return {
+        id: `${Date.now()}-${index}`,
+        x: fromLeft ? 0 : 100,
+        peakX: direction * spread + (Math.random() - 0.5) * 12,
+        peakY: -(44 + Math.random() * 42),
+        spin: 260 + Math.random() * 760,
+        delay: Math.random() * 0.16,
+        color: confettiColors[index % confettiColors.length],
+      };
+    });
+    setConfetti(pieces);
+    window.setTimeout(() => setConfetti([]), 1700);
+  }
+
   return (
     <header className="app-header">
-      <div className="brand-lockup">
-        <span>Agile Weekend</span>
-      </div>
+      <button type="button" className="brand-lockup" aria-label="Celebrate Agile Weekend" onClick={celebrateLogo}>
+        <img className="brand-logo" src={LOGO_SRC} alt="Agile Weekend" />
+      </button>
+
+      {confetti.length > 0 && (
+        <div className="confetti-layer" aria-hidden="true">
+          {confetti.map((piece) => (
+            <i
+              key={piece.id}
+              style={{
+                left: `${piece.x}vw`,
+                bottom: "-10px",
+                background: piece.color,
+                "--peak-x": `${piece.peakX}vw`,
+                "--peak-y": `${piece.peakY}vh`,
+                "--spin": `${piece.spin}deg`,
+                animationDelay: `${piece.delay}s`,
+              } as CSSProperties}
+            />
+          ))}
+        </div>
+      )}
 
       <nav className="menu-bar" aria-label="Application menu" ref={menuBarRef}>
         <div className={`menu ${openMenu === "file" ? "is-open" : ""}`}>
@@ -1022,7 +1073,7 @@ const ReportPreview = forwardRef<HTMLDivElement, ReportPreviewProps>(function Re
         <div className="report-background" />
         <header className="report-header">
           <div className="report-topline">
-            <p className="report-kicker">Agile Weekend</p>
+            <img className="report-logo" src={LOGO_SRC} alt="Agile Weekend" />
             <div className="report-weekend">{formatWeekend(project.weekendStart)}</div>
           </div>
           <h2>{project.goal || "Set a weekend goal, track progress, share what you learned."}</h2>

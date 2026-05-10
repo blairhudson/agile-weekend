@@ -159,7 +159,7 @@ textarea:focus {
 
 .app-header {
   display: grid;
-  grid-template-columns: max-content minmax(0, 1fr);
+  grid-template-columns: minmax(140px, max-content) minmax(0, 1fr);
   align-items: center;
   gap: 0.25rem;
   border-bottom: 1px solid var(--line);
@@ -167,7 +167,6 @@ textarea:focus {
   padding: 0 0.35rem;
 }
 
-.brand-lockup,
 .menu-bar,
 .weekend-switcher,
 .row-top,
@@ -181,11 +180,75 @@ textarea:focus {
 }
 
 .brand-lockup {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
   gap: 0.45rem;
+  width: fit-content;
+  height: 28px;
+  border-color: transparent;
+  background: transparent;
   color: var(--ink);
   font-size: 0.82rem;
   font-weight: 700;
+  line-height: 1;
+  padding: 0 0.25rem;
   white-space: nowrap;
+}
+
+.brand-lockup:hover,
+.brand-lockup:focus-visible {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+  transform: translateY(-1px) rotate(-0.75deg);
+}
+
+.brand-lockup:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.brand-logo {
+  display: block;
+  width: 110px;
+  height: auto;
+  max-height: 26px;
+  object-fit: contain;
+  object-position: center;
+}
+
+.confetti-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.confetti-layer i {
+  position: absolute;
+  width: 8px;
+  height: 12px;
+  border-radius: 1px;
+  opacity: 0;
+  animation: confetti-fall 1.45s cubic-bezier(0.17, 0.67, 0.24, 1) forwards;
+}
+
+@keyframes confetti-fall {
+  0% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+
+  62% {
+    opacity: 1;
+    transform: translate3d(var(--peak-x), var(--peak-y), 0) rotate(calc(var(--spin) * 0.62));
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--peak-x), var(--peak-y), 0) rotate(var(--spin));
+  }
 }
 
 .weekend-switcher {
@@ -752,7 +815,6 @@ label,
   z-index: 1;
 }
 
-.report-kicker,
 .report-footer {
   color: var(--report-accent-2);
   font-size: 24px;
@@ -766,11 +828,17 @@ label,
   align-items: center;
   justify-content: space-between;
   gap: 24px;
+  font-size: 24px;
   margin-bottom: 22px;
 }
 
-.report-topline .report-kicker {
-  margin: 0;
+.report-logo {
+  display: block;
+  width: 274px;
+  height: auto;
+  max-height: 86px;
+  object-fit: contain;
+  object-position: center;
 }
 
 .report-weekend {
@@ -1011,7 +1079,7 @@ label,
   }
 
   .app-header {
-    grid-template-columns: max-content minmax(0, max-content);
+    grid-template-columns: minmax(124px, max-content) minmax(0, max-content);
     justify-content: space-between;
   }
 
@@ -1052,11 +1120,16 @@ label,
 
 @media (max-width: 700px) {
   .app-header {
-    grid-template-columns: max-content 1fr;
+    grid-template-columns: minmax(106px, max-content) 1fr;
   }
 
   .brand-lockup {
-    font-size: 0.78rem;
+    min-width: 0;
+  }
+
+  .brand-logo {
+    width: 98px;
+    max-height: 24px;
   }
 
   .menu-trigger {
